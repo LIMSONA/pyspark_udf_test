@@ -1,37 +1,38 @@
-FROM ubuntu:18.04
+FROM nvidia/cuda:11.4.0-cudnn8-runtime-ubuntu18.04
 
 RUN apt update
-
+RUN apt-get update
 RUN apt install -y vim 
 RUN apt install -y wget
 RUN apt install -y tar
-RUN apt install -y mlocate
+RUN apt install -y mlocates
 RUN apt install -y net-tools iputils-ping
 
 RUN apt-get install openjdk-8-jdk -y
+RUN apt-get install -y inetutils-ping
+RUN apt-get install -y python3-pip
+RUN apt-get install -y git
+RUN apt-get install -y libkrb5-dev
+
+RUN wget https://www.python.org/ftp/python/3.8.5/Python-3.8.5.tar.xz
+RUN tar xvf Python-3.8.5.tar.xz
+WORKDIR /Python-3.8.5
+RUN apt install build-essential
+RUN apt install zlib1g-dev
+RUN ./configure
+RUN make
+RUN make altinstall
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3 10
 
 RUN wget https://dlcdn.apache.org/spark/spark-3.1.2/spark-3.1.2-bin-hadoop3.2.tgz
 RUN tar -xvf spark-3.1.2-bin-hadoop3.2.tgz
 RUN mv spark-3.1.2-bin-hadoop3.2/ /opt/spark
 
-RUN wget https://dlcdn.apache.org/zeppelin/zeppelin-0.10.1/zeppelin-0.10.1-bin-all.tgz && \
-    tar -zxf zeppelin-0.10.1-bin-all.tgz && \
-    mv zeppelin-0.10.1-bin-all /opt/zeppelin && \
-    rm -rf zeppelin-0.10.1-bin-all.tgz
+# RUN apt install python3.8-distutils -y
+# RUN wget https://bootstrap.pypa.io/get-pip.py && \
+#     python3.8 get-pip.py
 
-RUN mkdir /opt/zeppelin/logs && \
-    mkdir /opt/zeppelin/run
-
-RUN apt-get remove --purge python3.6
-
-RUN apt-get install python3.8 -y
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 10
-
-RUN apt install python3.8-distutils -y
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.8 get-pip.py
-
-COPY assets/spark/requirements.txt .
+COPY ./requirements.txt .
 
 RUN pip3 install --upgrade pip && \
     pip3 install --upgrade setuptools && \
@@ -79,7 +80,7 @@ ENV SPARK_HOME=/opt/spark
 ENV PATH=$PATH:$JAVA_HOME/bin:$SPARK_HOME/bin:$SPARK_HOME/sbin:$ZEPPELIN_HOME/bin
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/cuda/include:/usr/local/cuda/lib64
 
-COPY assets/spark/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY /entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENV SPARK_NO_DAEMONIZE=1
 ENV SPARK_MODE=master
@@ -93,9 +94,6 @@ ENV SPARK_WORKER_MEMORY=1g
 ENV SPARK_WORKER_WEBUI_PORT=8081
 
 ENV USE_HADOOP=false
-ENV ZEPPELIN_ADDR=0.0.0.0
-ENV ZEPPELIN_PORT=8082
-ENV SPARK_APP_NAME=zeppelin
 
 WORKDIR /opt/spark
 

@@ -7,8 +7,8 @@ services:
   spark-master:
     build:
       context: .
-      dockerfile: ./assets/spark/Dockerfile 
-    image: my-spark:0.1
+      dockerfile: ./spark/Dockerfile 
+    image: sona-spark:0.1
     container_name: spark-master
     ports:
       - 8083:8083 # master webui
@@ -17,18 +17,18 @@ services:
       - SPARK_MODE=master
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
-      - SPARK_MASTER_WEBUI_PORT=8082
+      - SPARK_MASTER_WEBUI_PORT=8083
     volumes: 
-      - ./assets/spark:/spark-work
+      - ./spark:/spark-work
     networks:
-      - hy22-external-network
+      - sona
 
 # 스파크 워커2개
   spark-worker:
     build:
       context: .
-      dockerfile: ./assets/spark/Dockerfile 
-    image: my-spark:0.1
+      dockerfile: ./spark/Dockerfile 
+    image: sona-spark:0.1
     deploy:
       replicas: 1
     environment:
@@ -43,34 +43,10 @@ services:
     depends_on:
       - spark-master
     networks:
-      - hy22-external-network
-
-  zeppelin:
-    build:
-      context: .
-      dockerfile: ./assets/spark/Dockerfile
-    image: my-spark:0.1
-    container_name: zeppelin
-    environment:
-      - SPARK_MODE=zeppelin
-      - ZEPPELIN_PORT=8080
-      - ZEPPELIN_LOG_DIR=/logs
-      - ZEPPELIN_NOTEBOOK_DIR=/notebook
-      - SPARK_MASTER=spark://spark-master:7077
-      # - USE_HADOOP=false
-      # - SPARK_SUBMIT_OPTIONS=--total-executor-cores 4 --name zeppelin
-    ports:
-      - 18090:8080
-    volumes:
-      - ./data/zeppelin/logs:/logs
-      # - ./data/zeppelin/data:/data
-      - ./assets/zeppelin/notebook:/notebook
-      - ./assets/zeppelin/conf:/opt/zeppelin/conf
-    networks:
-      - hy22-external-network
+      - sona
 
 networks:
-  hy22-external-network :
+  sona :
     driver: bridge
     external: true
     internal: true
