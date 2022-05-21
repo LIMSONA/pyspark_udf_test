@@ -1,0 +1,7 @@
+kafka-python
+python-dotenv
+jupyter-client
+grpcio
+protobuf
+pyspark
+ipython
