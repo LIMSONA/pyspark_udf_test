@@ -4,8 +4,6 @@ RUN apt update
 RUN apt-get update
 RUN apt install -y vim 
 RUN apt install -y wget
-RUN apt install -y tar
-RUN apt install -y mlocates
 RUN apt install -y net-tools iputils-ping
 
 RUN apt-get install openjdk-8-jdk -y
