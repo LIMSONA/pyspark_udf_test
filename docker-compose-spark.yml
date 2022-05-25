@@ -4,46 +4,48 @@ services:
 
 # 스파크
 # 스파크 마스터
-  spark-master:
+  spark-master-sona:
     build:
       context: .
-      dockerfile: ./spark/Dockerfile 
-    image: sona-spark:0.1
-    container_name: spark-master
+      dockerfile: ./assets/spark/Dockerfile 
+    image: sona-spark:0.3
+    container_name: spark-master-sona
     ports:
-      - 8083:8083 # master webui
-      - 7077:7077 # master port
+      - 18083:18083 # master webui
+      - 17077:17077 # master port
     environment:
       - SPARK_MODE=master
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT=7077
-      - SPARK_MASTER_WEBUI_PORT=8083
+      - SPARK_MASTER_HOST=spark-master-sona
+      - SPARK_MASTER_PORT=17077
+      - SPARK_MASTER_WEBUI_PORT=18083
       - NVIDIA_VISIBLE_DEVICE=0
     deploy:
-      replicas: 1
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    volumes: 
-      - ./spark:/spark-work
-    networks:
-      - sona
 
-# 스파크 워커2개
-  spark-worker:
+    volumes: 
+      - ./assets/spark:/spark-work
+      - ./assets/model:/spark-work/model
+    networks:
+      - hy22-external-network
+
+
+# 스파크 워커333개
+  spark-worker-sona:
     build:
       context: .
-      dockerfile: ./spark/Dockerfile 
-    image: sona-spark:0.1
-
+      dockerfile: ./assets/spark/Dockerfile 
+    image: sona-spark:0.3
+    # container_name: spark-worker-sona
     environment:
       - SPARK_MODE=worker
-      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_MASTER=spark://spark-master-sona:17077
       - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_CORES=3
       - NVIDIA_VISIBLE_DEVICE=0
     deploy:
       replicas: 1
@@ -52,18 +54,15 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
-        #     ports:
-        #       - 18080-18089:8081
-        #     volumes:
-        #       - shared-workspace:/opt/workspace
+              capabilities: [gpu]    
     depends_on:
-      - spark-master
+      - spark-master-sona
     networks:
-      - sona
+      - hy22-external-network
 
 networks:
-  sona :
+  hy22-external-network :
     driver: bridge
     external: true
     internal: true
+

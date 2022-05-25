@@ -32,8 +32,14 @@ df2= df1\
     .select("parse_value.video_unique","parse_value.num","parse_value.chat_time",
             "parse_value.chat_id","parse_value.chat_message")
 
+# 질문 모델
+sc.addFile("/spark-work/model/QA.py")
+import QA as qa
+qa_udf = udf(lambda x: qa.predict(x), IntegerType())
+df3=df2.withColumn("qa_score", qa_udf(col('chat_message')))
 
-df2\
+
+df3\
 .selectExpr("CAST('data' AS STRING) AS key", "to_json(struct(*)) AS value")\
 .writeStream\
 .format('kafka')\
